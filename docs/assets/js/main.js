@@ -214,56 +214,310 @@ ready(() => {
 
   // Snowball showdown game
   const snowballArena = document.querySelector('[data-snowball-arena]');
-  const snowballTarget = document.querySelector('[data-snowball-target]');
+  const snowballHideouts = snowballArena ? Array.from(snowballArena.querySelectorAll('[data-hideout]')) : [];
   const snowballScoreEl = document.querySelector('[data-snowball-score]');
+  const snowballTimerEl = document.querySelector('[data-snowball-timer]');
+  const snowballMultiplierEl = document.querySelector('[data-snowball-multiplier]');
+  const snowballStreakEl = document.querySelector('[data-snowball-streak]');
+  const snowballHighscoreEl = document.querySelector('[data-snowball-highscore]');
+  const snowballMessageEl = document.querySelector('[data-snowball-message]');
   const snowballStart = document.querySelector('[data-start-snowball]');
   const snowballReset = document.querySelector('[data-reset-snowball]');
 
-  let snowballScore = 0;
-  let snowballInterval = null;
+  const SNOWBALL_ROUND_DURATION = 45000;
+  const SNOWBALL_STORAGE_KEY = 'tim-snowball-showdown-highscore';
+  const snowballFaces = [
+    {
+      src: 'https://www.daar-om.nl/wp-content/uploads/2023/08/IMG_2783.jpg',
+      alt: 'Tim Bodewes zwaait vrolijk in de sneeuw',
+    },
+    {
+      src: 'https://www.daar-om.nl/wp-content/uploads/2023/08/IMG_2783.jpg',
+      alt: 'Tim Bodewes gooit een marketing-sneeuwbal',
+    },
+    {
+      src: 'https://www.daar-om.nl/wp-content/uploads/2023/08/IMG_2783.jpg',
+      alt: 'Tim Bodewes verstopt zich achter zijn sneeuwfort',
+    },
+  ];
+  const snowballFaceFilters = [
+    'none',
+    'hue-rotate(-12deg) saturate(1.25)',
+    'hue-rotate(18deg) saturate(1.1)',
+    'saturate(1.35)',
+    'contrast(1.05) brightness(1.05)',
+  ];
 
-  const hideTarget = () => {
-    if (snowballTarget) {
-      snowballTarget.classList.add('hidden');
+  const snowballHitMessages = [
+    'Raak! Tim voelt de marketing-sneeuwbal! ❄️',
+    "Bam! KPI's omhoog én sneeuw in z'n gezicht! 🎯",
+    'Chef Tim kapt het sneeuwkanon af! ☃️',
+  ];
+  const snowballComboMessages = [
+    'Combo! De sneeuwbal-machine draait op volle toeren! 🔥',
+    'Multiplier boost! Tim kan nergens meer heen! 🚀',
+    'Je houdt de polonaise-sneeuwstorm gaande! 🪩',
+  ];
+  const snowballMissMessages = [
+    'Tim dook weg. Volgende keer harder gooien! 🧤',
+    'Gemist! Hij stond achter de après-ski bar. 🍹',
+    'Oei, sneeuwbal in de glühwein... probeer opnieuw! 🍷',
+  ];
+
+  let snowballScore = 0;
+  let snowballMultiplier = 1;
+  let snowballStreak = 0;
+  let snowballHighscore = 0;
+  let timeRemaining = SNOWBALL_ROUND_DURATION;
+  let isRoundActive = false;
+  let spawnTimeoutId = null;
+  let timerIntervalId = null;
+  let activeHideout = null;
+  let lastHideout = null;
+
+  try {
+    const storedHighscore = window.localStorage?.getItem(SNOWBALL_STORAGE_KEY);
+    if (storedHighscore) {
+      snowballHighscore = Number(storedHighscore) || 0;
     }
+  } catch (error) {
+    // ignore storage errors
+  }
+
+  const setMessage = (message) => {
+    if (snowballMessageEl) {
+      snowballMessageEl.textContent = message;
+    }
+  };
+
+  const persistHighscore = () => {
+    try {
+      window.localStorage?.setItem(SNOWBALL_STORAGE_KEY, String(snowballHighscore));
+    } catch (error) {
+      // ignore persistence errors
+    }
+  };
+
+  const setHideoutsDisabled = (disabled) => {
+    snowballHideouts.forEach((hideout) => {
+      hideout.disabled = disabled;
+    });
+  };
+
+  const updateScoreboard = () => {
+    if (snowballScoreEl) snowballScoreEl.textContent = snowballScore;
+    if (snowballTimerEl) snowballTimerEl.textContent = `${Math.max(0, Math.ceil(timeRemaining / 1000))}s`;
+    if (snowballMultiplierEl) snowballMultiplierEl.textContent = `x${snowballMultiplier}`;
+    if (snowballStreakEl) snowballStreakEl.textContent = snowballStreak;
+    if (snowballHighscoreEl) snowballHighscoreEl.textContent = snowballHighscore;
+  };
+
+  const deactivateHideout = (hideout, { missed = false } = {}) => {
+    if (!hideout) return;
+    const timeoutId = Number(hideout.dataset.hideTimeout || 0);
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+    hideout.dataset.active = 'false';
+    delete hideout.dataset.hideTimeout;
+    hideout.classList.remove('is-active');
+    if (missed) {
+      hideout.classList.add('is-missed');
+      window.setTimeout(() => hideout.classList.remove('is-missed'), 320);
+    }
+    if (activeHideout === hideout) {
+      activeHideout = null;
+    }
+  };
+
+  const scheduleNextSpawn = (delay) => {
+    if (!isRoundActive) return;
+    const difficultyOffset = Math.min(420, snowballScore * 12);
+    const baseDelay = typeof delay === 'number' ? delay : 900 - difficultyOffset;
+    const clampedDelay = Math.max(260, baseDelay);
+    if (spawnTimeoutId) {
+      window.clearTimeout(spawnTimeoutId);
+    }
+    spawnTimeoutId = window.setTimeout(() => {
+      spawnTimeoutId = null;
+      spawnTarget();
+    }, clampedDelay);
   };
 
   const spawnTarget = () => {
-    if (!snowballArena || !snowballTarget) return;
-    const bounds = snowballArena.getBoundingClientRect();
-    const x = Math.random() * 60 + 20; // percentage
-    const y = Math.random() * 40 + 20;
-    snowballTarget.style.left = `${x}%`;
-    snowballTarget.style.top = `${y}%`;
-    snowballTarget.classList.remove('hidden');
-    if (window.motion?.animate) {
-      window.motion.animate(snowballTarget, { scale: [0.7, 1] }, { duration: 0.25, easing: 'ease-out' });
+    if (!isRoundActive || snowballHideouts.length === 0) return;
+
+    if (activeHideout) {
+      deactivateHideout(activeHideout);
     }
-    setTimeout(hideTarget, 900);
+
+    const pool = snowballHideouts.filter((hideout) => hideout !== lastHideout);
+    const candidates = pool.length > 0 ? pool : snowballHideouts;
+    const hideout = candidates[Math.floor(Math.random() * candidates.length)];
+    lastHideout = hideout;
+    activeHideout = hideout;
+
+    hideout.classList.remove('is-hit', 'is-missed');
+    hideout.classList.add('is-active');
+    hideout.dataset.active = 'true';
+
+    const avatar = hideout.querySelector('[data-snowball-avatar]');
+    if (avatar) {
+      const face = snowballFaces[Math.floor(Math.random() * snowballFaces.length)];
+      avatar.setAttribute('src', face.src);
+      avatar.setAttribute('alt', face.alt);
+      const filter = snowballFaceFilters[Math.floor(Math.random() * snowballFaceFilters.length)];
+      avatar.style.filter = filter;
+    }
+
+    const visibleDuration = Math.max(600, 1500 - snowballScore * 25);
+    const hideTimeout = window.setTimeout(() => {
+      if (hideout.dataset.active !== 'true') return;
+      deactivateHideout(hideout, { missed: true });
+      snowballStreak = 0;
+      snowballMultiplier = 1;
+      updateScoreboard();
+      setMessage(snowballMissMessages[Math.floor(Math.random() * snowballMissMessages.length)]);
+      scheduleNextSpawn();
+    }, visibleDuration);
+    hideout.dataset.hideTimeout = String(hideTimeout);
   };
 
-  snowballTarget?.addEventListener('click', () => {
-    snowballScore += 1;
-    if (snowballScoreEl) snowballScoreEl.textContent = snowballScore;
-    hideTarget();
-    if (window.motion?.animate) {
-      window.motion.animate('[data-snowball-score]', { scale: [1, 1.2, 1] }, { duration: 0.3 });
+  const stopSnowballRound = ({ reason = 'aborted', preserveScore = false } = {}) => {
+    const finalScore = snowballScore;
+    if (timerIntervalId) {
+      window.clearInterval(timerIntervalId);
+      timerIntervalId = null;
     }
-  });
+    if (spawnTimeoutId) {
+      window.clearTimeout(spawnTimeoutId);
+      spawnTimeoutId = null;
+    }
+    if (activeHideout) {
+      deactivateHideout(activeHideout);
+    }
+    lastHideout = null;
+    isRoundActive = false;
+    setHideoutsDisabled(true);
+    snowballHideouts.forEach((hideout) => hideout.blur());
+    if (snowballStart) {
+      snowballStart.disabled = false;
+    }
 
-  snowballStart?.addEventListener('click', () => {
+    if (!preserveScore) {
+      snowballScore = 0;
+    }
+    snowballMultiplier = 1;
+    snowballStreak = 0;
+    timeRemaining = preserveScore ? 0 : SNOWBALL_ROUND_DURATION;
+
+    const isNewHighscore = reason === 'timeout' && finalScore > snowballHighscore;
+    if (isNewHighscore) {
+      snowballHighscore = finalScore;
+      persistHighscore();
+    }
+
+    updateScoreboard();
+
+    if (reason === 'timeout') {
+      if (isNewHighscore) {
+        setMessage(`Nieuwe highscore! ${finalScore} punten! 🏆`);
+      } else {
+        setMessage(`Ronde voorbij! Je scoorde ${finalScore} punten. ⛄`);
+      }
+    } else if (reason === 'reset') {
+      setMessage('Score teruggezet. Klaar voor een nieuwe ronde? 🎿');
+    } else if (reason === 'aborted') {
+      setMessage('Ronde geannuleerd. Tim lacht zich rot, probeer het opnieuw! 😅');
+    }
+  };
+
+  const startSnowballRound = () => {
+    if (isRoundActive || snowballHideouts.length === 0) return;
+    isRoundActive = true;
     snowballScore = 0;
-    if (snowballScoreEl) snowballScoreEl.textContent = snowballScore;
-    if (snowballInterval) clearInterval(snowballInterval);
+    snowballMultiplier = 1;
+    snowballStreak = 0;
+    timeRemaining = SNOWBALL_ROUND_DURATION;
+    updateScoreboard();
+    setHideoutsDisabled(false);
+    setMessage('Ronde gestart! Tim duikt overal op, blijf scherp! 🧊');
+    if (snowballStart) {
+      snowballStart.disabled = true;
+    }
+
+    if (timerIntervalId) {
+      window.clearInterval(timerIntervalId);
+    }
+    timerIntervalId = window.setInterval(() => {
+      timeRemaining -= 1000;
+      if (timeRemaining <= 0) {
+        timeRemaining = 0;
+        updateScoreboard();
+        stopSnowballRound({ reason: 'timeout', preserveScore: true });
+      } else {
+        updateScoreboard();
+      }
+    }, 1000);
+
+    if (window.motion?.animate) {
+      window.motion.animate('[data-snowball-arena]', { opacity: [0.9, 1], scale: [0.97, 1] }, { duration: 0.45, easing: 'ease-out' });
+    }
+
     spawnTarget();
-    snowballInterval = setInterval(spawnTarget, 1200);
-  });
+  };
+
+  const handleHideoutHit = (hideout) => {
+    if (!isRoundActive || hideout?.dataset.active !== 'true') return;
+    const timeoutId = Number(hideout.dataset.hideTimeout || 0);
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+
+    hideout.classList.add('is-hit');
+    deactivateHideout(hideout);
+    window.setTimeout(() => hideout.classList.remove('is-hit'), 480);
+
+    snowballStreak += 1;
+    if (snowballStreak > 0 && snowballStreak % 3 === 0) {
+      snowballMultiplier = Math.min(5, snowballMultiplier + 1);
+      setMessage(snowballComboMessages[Math.floor(Math.random() * snowballComboMessages.length)]);
+      if (window.motion?.animate) {
+        window.motion.animate('[data-snowball-score]', { scale: [1, 1.25, 1] }, { duration: 0.4 });
+      }
+    } else {
+      setMessage(snowballHitMessages[Math.floor(Math.random() * snowballHitMessages.length)]);
+    }
+
+    const earnedPoints = 10 * snowballMultiplier;
+    snowballScore += earnedPoints;
+    updateScoreboard();
+
+    if (window.motion?.animate) {
+      const avatar = hideout.querySelector('.snowball-avatar');
+      if (avatar) {
+        window.motion.animate(avatar, { scale: [1, 1.15, 1] }, { duration: 0.35 });
+      }
+      window.motion.animate('[data-snowball-arena]', { rotate: [0, -1.5, 1.5, 0] }, { duration: 0.35 });
+    }
+
+    const nextDelay = Math.max(260, 620 - Math.min(240, snowballScore * 6));
+    scheduleNextSpawn(nextDelay);
+  };
+
+  if (snowballHideouts.length > 0) {
+    setHideoutsDisabled(true);
+    updateScoreboard();
+    snowballHideouts.forEach((hideout) => {
+      hideout.addEventListener('click', () => handleHideoutHit(hideout));
+    });
+  }
+
+  snowballStart?.addEventListener('click', startSnowballRound);
 
   snowballReset?.addEventListener('click', () => {
-    snowballScore = 0;
-    if (snowballScoreEl) snowballScoreEl.textContent = snowballScore;
-    if (snowballInterval) clearInterval(snowballInterval);
-    hideTarget();
+    const wasActive = isRoundActive;
+    stopSnowballRound({ reason: wasActive ? 'aborted' : 'reset', preserveScore: false });
   });
 
   // Rhythm mini-game
