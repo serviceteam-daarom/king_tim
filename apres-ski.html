@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="nl" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Après-Ski Saga van Tim Bodewes</title>
+    <meta
+      name="description"
+      content="Duik in de hilarische après-ski saga van Tim Bodewes: shots, strategie en sneeuwpret met de koning van de bergen."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['Fredoka', 'cursive'],
+              body: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              apres: {
+                pink: '#FF72C6',
+                orange: '#FF914D',
+                blue: '#1FB6FF',
+                purple: '#7C3AED',
+              },
+            },
+            backgroundImage: {
+              confetti:
+                'radial-gradient(circle at 20% 20%, rgba(255,114,198,0.3) 0, transparent 50%), radial-gradient(circle at 80% 30%, rgba(31,182,255,0.35) 0, transparent 55%), radial-gradient(circle at 40% 80%, rgba(255,145,77,0.35) 0, transparent 60%)',
+            },
+          },
+        },
+      };
+    </script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/motion@10.16.3/dist/motion.min.js"></script>
+    <link rel="icon" href="https://www.daar-om.nl/wp-content/uploads/2023/08/IMG_2783.jpg" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-white bg-confetti">
+    <header class="relative overflow-hidden">
+      <div class="absolute inset-0 opacity-50 bg-gradient-to-r from-apres-purple/30 via-apres-pink/30 to-apres-orange/30 blur-3xl"></div>
+      <nav class="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
+        <a href="index.html" class="flex items-center gap-3 text-white">
+          <img
+            src="https://www.daar-om.nl/wp-content/uploads/2023/08/IMG_2783.jpg"
+            alt="Tim Bodewes lacht naar de camera"
+            class="h-14 w-14 rounded-full border-2 border-white/70 shadow-[0_0_25px_rgba(255,145,77,0.5)]"
+          />
+          <div>
+            <p class="font-display text-xl font-semibold leading-none">Tim Bodewes</p>
+            <p class="text-sm text-white/70">Koning van de Après-Ski</p>
+          </div>
+        </a>
+        <div class="hidden items-center gap-8 text-sm font-medium md:flex">
+          <a href="index.html#highlights" class="transition hover:text-apres-orange">Hoogtepunten</a>
+          <a href="apres-ski.html" class="transition text-apres-orange">Après-Ski Saga</a>
+          <a href="games.html" class="transition hover:text-apres-orange">Mini Games</a>
+          <a href="index.html#music" class="transition hover:text-apres-orange">Levenslied</a>
+        </div>
+        <a
+          href="https://daar-om.nl"
+          class="hidden rounded-full bg-white/10 px-5 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/20 md:inline-block"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Boek Tim nu
+        </a>
+        <button
+          class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/20 md:hidden"
+          data-mobile-menu
+        >
+          <i data-lucide="sparkles" class="h-4 w-4"></i>
+          Menu
+        </button>
+      </nav>
+      <div class="relative z-10 mx-auto max-w-5xl px-6 pb-20 pt-16 text-center">
+        <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur">
+          <i data-lucide="music-4" class="h-4 w-4"></i>
+          Live vanuit het hoogste terras van Oostenrijk
+        </p>
+        <h1 class="mt-6 font-display text-4xl font-bold leading-tight sm:text-5xl">
+          De Après-Ski Saga: hoe Tim elke bar veranderde in een marketing machine.
+        </h1>
+        <p class="mt-4 text-lg text-white/70">
+          Met een microfoon in de ene hand en een KPI-dashboard in de andere, danst Tim door de Alpen en laat hij concurrenten bibberen in hun skischoenen.
+        </p>
+      </div>
+    </header>
+
+    <main class="relative z-10 space-y-20 pb-24">
+      <section class="mx-auto max-w-5xl px-6">
+        <div class="grid gap-10 lg:grid-cols-2">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <h2 class="font-display text-3xl font-semibold">Tim's Après-Ski Toolkit</h2>
+            <p class="mt-3 text-white/70">
+              Elke koning heeft zijn kroonjuwelen. Tim's toolkit is gevuld met gadgets die zelfs de Yeti jaloers maken.
+            </p>
+            <ul class="mt-6 space-y-4 text-white/80">
+              <li class="flex items-start gap-3">
+                <i data-lucide="speaker" class="mt-1 h-5 w-5 text-apres-orange"></i>
+                <span>
+                  <strong>Sneeuwkanon-microfoon:</strong> schuift automatisch decibellen omhoog zodra iemand "Waar is Tim?!" roept.
+                </span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="wifi" class="mt-1 h-5 w-5 text-apres-blue"></i>
+                <span>
+                  <strong>Wifi-skihelm:</strong> livestreamt zijn marketing tips naar iedereen in de skilift.
+                </span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="snowflake" class="mt-1 h-5 w-5 text-apres-pink"></i>
+                <span>
+                  <strong>Glitter-sneeuw:</strong> elke flake draagt een QR-code met een kortingsactie.
+                </span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="clapperboard" class="mt-1 h-5 w-5 text-apres-purple"></i>
+                <span>
+                  <strong>Content camera:</strong> filmt elk shotje in slow motion voor de socials.
+                </span>
+              </li>
+            </ul>
+          </div>
+          <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <div class="absolute -inset-0.5 rounded-3xl bg-gradient-to-tr from-apres-pink/20 via-apres-blue/20 to-apres-orange/20 blur-2xl"></div>
+            <div class="relative space-y-4">
+              <h3 class="font-display text-2xl font-semibold">Après KPI Dashboard</h3>
+              <p class="text-sm text-white/60">Geüpdatet zodra Tim "PROOST" zegt.</p>
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="rounded-2xl bg-slate-950/70 p-4 text-left">
+                  <p class="text-sm text-white/60">Shots per uur</p>
+                  <p class="text-3xl font-bold text-apres-orange" data-counter data-target="72">0</p>
+                </div>
+                <div class="rounded-2xl bg-slate-950/70 p-4 text-left">
+                  <p class="text-sm text-white/60">Aantal polonaises</p>
+                  <p class="text-3xl font-bold text-apres-blue" data-counter data-target="18">0</p>
+                </div>
+                <div class="rounded-2xl bg-slate-950/70 p-4 text-left">
+                  <p class="text-sm text-white/60">Volume decibellen</p>
+                  <p class="text-3xl font-bold text-apres-pink" data-counter data-target="110">0</p>
+                </div>
+                <div class="rounded-2xl bg-slate-950/70 p-4 text-left">
+                  <p class="text-sm text-white/60">Nieuwe volgers</p>
+                  <p class="text-3xl font-bold text-apres-purple" data-counter data-target="248">0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-5xl px-6">
+        <div class="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <h2 class="font-display text-3xl font-semibold">Het officiële dagboek van de koning</h2>
+            <ol class="mt-6 space-y-6 text-left text-white/80">
+              <li class="rounded-2xl border border-white/10 bg-slate-950/70 p-5 shadow-lg">
+                <h3 class="flex items-center gap-3 font-semibold text-apres-orange">
+                  <i data-lucide="sunrise" class="h-5 w-5"></i>
+                  07:00 - Sunrise Strategy
+                </h3>
+                <p class="mt-2 text-sm">
+                  Tim ontwijkt skiërs terwijl hij contentplanning doet. Iedere bocht is een brainstorm.
+                </p>
+              </li>
+              <li class="rounded-2xl border border-white/10 bg-slate-950/70 p-5 shadow-lg">
+                <h3 class="flex items-center gap-3 font-semibold text-apres-blue">
+                  <i data-lucide="bar-chart-3" class="h-5 w-5"></i>
+                  12:30 - Lunch & Leads
+                </h3>
+                <p class="mt-2 text-sm">
+                  Fondue op het vuur, lead magnet in de lucht. Hij verkoopt retargeting terwijl hij raclette omschept.
+                </p>
+              </li>
+              <li class="rounded-2xl border border-white/10 bg-slate-950/70 p-5 shadow-lg">
+                <h3 class="flex items-center gap-3 font-semibold text-apres-pink">
+                  <i data-lucide="sparkle" class="h-5 w-5"></i>
+                  18:00 - Glitter Briefing
+                </h3>
+                <p class="mt-2 text-sm">
+                  Team call met daar-om.nl vanuit de gondel. Iedereen krijgt een digitale glitterfilter.
+                </p>
+              </li>
+              <li class="rounded-2xl border border-white/10 bg-slate-950/70 p-5 shadow-lg">
+                <h3 class="flex items-center gap-3 font-semibold text-apres-purple">
+                  <i data-lucide="moon-star" class="h-5 w-5"></i>
+                  23:45 - Nachtelijke NPS-meting
+                </h3>
+                <p class="mt-2 text-sm">
+                  Tim interviewt feestgangers terwijl hij de DJ booth overneemt. Score: 11/10.
+                </p>
+              </li>
+            </ol>
+          </div>
+          <div class="flex flex-col gap-6">
+            <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur">
+              <h3 class="font-display text-2xl font-semibold">Après-Ski Buzzer</h3>
+              <p class="mt-2 text-white/70">Druk op de knop zodra het refrein dropt.</p>
+              <button
+                class="mt-6 inline-flex items-center gap-2 rounded-full bg-apres-orange px-6 py-3 text-base font-semibold text-slate-950 shadow-lg shadow-apres-orange/40 transition hover:-translate-y-0.5 hover:shadow-xl"
+                data-buzzer
+              >
+                <i data-lucide="alarm-clock" class="h-5 w-5"></i>
+                TIM! TIM! TIM!
+              </button>
+              <p class="mt-4 text-sm text-apres-blue" data-buzzer-status>Hij staat op scherp...</p>
+            </div>
+            <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+              <h3 class="font-display text-2xl font-semibold">Après-Ski Playlist</h3>
+              <ul class="mt-4 space-y-3 text-sm text-white/80" data-playlist>
+                <li class="flex items-center justify-between gap-3 rounded-2xl bg-slate-950/70 px-4 py-3">
+                  <span class="flex items-center gap-2"><i data-lucide="music" class="h-4 w-4"></i>Shotje Strategie</span>
+                  <span class="text-white/60">3:12</span>
+                </li>
+              </ul>
+              <button
+                class="mt-4 w-full rounded-full border border-white/30 px-4 py-3 text-sm font-semibold transition hover:bg-white/10"
+                data-add-track
+              >
+                Voeg een spontaan feestnummer toe
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-white/10 bg-slate-900/70 py-12 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 text-center text-sm text-white/60 md:flex-row md:text-left">
+        <p>© <span id="year"></span> Fanclub Tim Bodewes. Après-ski tot in de eeuwigheid.</p>
+        <div class="flex gap-6">
+          <a href="index.html" class="hover:text-apres-orange">Home</a>
+          <a href="games.html" class="hover:text-apres-orange">Mini Games</a>
+          <a href="https://daar-om.nl" target="_blank" rel="noreferrer" class="hover:text-apres-orange">Boek Tim</a>
+        </div>
+      </div>
+    </footer>
+
+    <div
+      class="fixed inset-0 z-40 hidden bg-slate-950/80 px-6 py-10 backdrop-blur-sm"
+      data-mobile-panel
+    >
+      <div class="mx-auto flex max-w-3xl flex-col gap-6 rounded-3xl border border-white/10 bg-slate-900/90 p-6 text-center">
+        <button class="self-end" data-close-panel>
+          <i data-lucide="x" class="h-6 w-6"></i>
+        </button>
+        <a href="index.html#highlights" class="text-lg font-semibold text-white" data-panel-link>Hoogtepunten</a>
+        <a href="apres-ski.html" class="text-lg font-semibold text-white" data-panel-link>Après-Ski Saga</a>
+        <a href="games.html" class="text-lg font-semibold text-white" data-panel-link>Mini Games</a>
+        <a href="index.html#music" class="text-lg font-semibold text-white" data-panel-link>Levenslied</a>
+      </div>
+    </div>
+
+    <script src="assets/js/main.js" defer></script>
+  </body>
+</html>
