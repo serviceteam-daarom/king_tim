@@ -53,6 +53,7 @@ ready(() => {
   // Spin the Tim wheel
   const spinButton = document.querySelector('[data-spin-button]');
   const spinResult = document.querySelector('[data-spin-result]');
+  const spinWheel = document.querySelector('[data-spin-wheel]');
   const spinVibes = [
     'de maestro van de marketing-polonaise! 🪩',
     'een skiende SEO-snowcat. ⛷️',
@@ -62,18 +63,75 @@ ready(() => {
     'een wandelende campagnemachine in skipak. 🚀',
   ];
 
-  if (spinButton && spinResult) {
+  let currentWheelRotation = 0;
+
+  if (spinButton && spinResult && spinWheel) {
     spinButton.addEventListener('click', () => {
+      if (spinButton.disabled) return;
       spinButton.disabled = true;
       const randomVibe = spinVibes[Math.floor(Math.random() * spinVibes.length)];
+      const startRotation = currentWheelRotation;
+      const extraSpins = 3 + Math.floor(Math.random() * 3); // 3-5 extra spins
+      const randomOffset = Math.random() * 360;
+      const targetRotation = startRotation + extraSpins * 360 + randomOffset;
+      const spinDuration = 3.5;
+
+      spinResult.textContent = '';
+      spinResult.style.opacity = '0';
+
+      spinWheel.style.transition = '';
+      spinWheel.style.transform = `rotate(${startRotation}deg)`;
+
+      const revealResult = () => {
+        currentWheelRotation = targetRotation % 360;
+        spinWheel.style.transform = `rotate(${currentWheelRotation}deg)`;
+        spinResult.textContent = `Vandaag ben jij ${randomVibe}`;
+
+        const finishReveal = () => {
+          spinResult.style.opacity = '1';
+          spinButton.disabled = false;
+        };
+
+        if (window.motion?.animate) {
+          const textAnimation = window.motion.animate(
+            spinResult,
+            { opacity: [0, 1], y: [-10, 0] },
+            { duration: 0.6, easing: 'ease-out' }
+          );
+          const textFinished = textAnimation?.finished ?? Promise.resolve();
+          textFinished
+            .catch(() => {})
+            .finally(finishReveal);
+        } else {
+          finishReveal();
+        }
+      };
+
       if (window.motion?.animate) {
         window.motion.animate('[data-spin-button]', { rotate: [0, 360] }, { duration: 0.8, easing: 'ease-out' });
-        window.motion.animate('[data-spin-result]', { opacity: [0, 1], y: [-10, 0] }, { duration: 0.6 });
+        const wheelAnimation = window.motion.animate(
+          spinWheel,
+          { rotate: [startRotation, targetRotation] },
+          {
+            duration: spinDuration,
+            easing: 'cubic-bezier(0.12, 0.01, 0.08, 0.99)',
+            fill: 'forwards',
+          }
+        );
+        const wheelFinished = wheelAnimation?.finished ?? Promise.resolve();
+        wheelFinished
+          .catch(() => {})
+          .finally(revealResult);
+      } else {
+        spinWheel.style.transition = `transform ${spinDuration}s cubic-bezier(0.12, 0.01, 0.08, 0.99)`;
+        // Force layout to apply any previous transition before setting new transform
+        void spinWheel.offsetWidth;
+        spinWheel.style.transform = `rotate(${targetRotation}deg)`;
+        setTimeout(() => {
+          spinWheel.style.transition = '';
+          revealResult();
+        }, spinDuration * 1000);
       }
-      setTimeout(() => {
-        spinResult.textContent = `Vandaag ben jij ${randomVibe}`;
-        spinButton.disabled = false;
-      }, 400);
     });
   }
 
