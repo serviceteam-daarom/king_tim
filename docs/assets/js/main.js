@@ -292,6 +292,357 @@ ready(() => {
     });
   });
 
+  // Après-ski soundboard
+  const soundboardButtons = document.querySelectorAll('[data-soundboard-button]');
+  if (soundboardButtons.length > 0) {
+    const statusEl = document.querySelector('[data-soundboard-status]');
+    const volumeControl = document.querySelector('[data-soundboard-volume]');
+    const volumeLabel = document.querySelector('[data-soundboard-volume-label]');
+    const visualizerBars = document.querySelectorAll('[data-soundboard-bar]');
+
+    const defaultStatus = statusEl?.textContent || '';
+    let audioCtx = null;
+    let masterGain = null;
+    const activeSources = new Set();
+    let visualizerInterval = null;
+    let visualizerTimeout = null;
+    let statusTimeout = null;
+
+    const ensureContext = () => {
+      if (!audioCtx) {
+        const Context = window.AudioContext || window.webkitAudioContext;
+        if (!Context) return null;
+        audioCtx = new Context();
+        masterGain = audioCtx.createGain();
+        const initialGain = volumeControl ? Number(volumeControl.value || 75) / 100 : 0.75;
+        masterGain.gain.value = initialGain;
+        masterGain.connect(audioCtx.destination);
+      }
+      return audioCtx;
+    };
+
+    const resumeContext = async () => {
+      const ctx = ensureContext();
+      if (!ctx) return null;
+      if (ctx.state === 'suspended') {
+        try {
+          await ctx.resume();
+        } catch (error) {
+          // ignore resume errors
+        }
+      }
+      return ctx;
+    };
+
+    const watchSource = (source) => {
+      if (!source) return;
+      activeSources.add(source);
+      const cleanup = () => {
+        activeSources.delete(source);
+      };
+      if (typeof source.addEventListener === 'function') {
+        source.addEventListener('ended', cleanup, { once: true });
+      } else {
+        source.onended = cleanup;
+      }
+    };
+
+    const stopActiveSources = () => {
+      const sources = Array.from(activeSources);
+      activeSources.clear();
+      sources.forEach((source) => {
+        if (typeof source.stop === 'function') {
+          try {
+            source.stop();
+          } catch (error) {
+            // ignore if already stopped
+          }
+        }
+      });
+    };
+
+    const startVisualizer = (duration) => {
+      if (visualizerInterval) clearInterval(visualizerInterval);
+      if (visualizerTimeout) clearTimeout(visualizerTimeout);
+      if (visualizerBars.length === 0) return;
+
+      visualizerInterval = window.setInterval(() => {
+        visualizerBars.forEach((bar, index) => {
+          const height = 20 + Math.random() * 70;
+          const opacity = 0.45 + Math.random() * 0.45;
+          bar.style.height = `${height}%`;
+          bar.style.opacity = opacity.toFixed(2);
+          bar.style.transition = 'height 0.14s ease, opacity 0.2s ease';
+        });
+      }, 140);
+
+      visualizerTimeout = window.setTimeout(() => {
+        stopVisualizer();
+      }, duration * 1000);
+    };
+
+    const stopVisualizer = () => {
+      if (visualizerInterval) {
+        clearInterval(visualizerInterval);
+        visualizerInterval = null;
+      }
+      if (visualizerTimeout) {
+        clearTimeout(visualizerTimeout);
+        visualizerTimeout = null;
+      }
+      visualizerBars.forEach((bar, index) => {
+        const base = 10 + index * 3;
+        bar.style.height = `${base}%`;
+        bar.style.opacity = '0.35';
+        bar.style.transition = 'height 0.4s ease, opacity 0.4s ease';
+      });
+    };
+
+    const setStatus = (message) => {
+      if (!statusEl) return;
+      if (statusTimeout) {
+        clearTimeout(statusTimeout);
+        statusTimeout = null;
+      }
+      statusEl.textContent = message;
+      if (window.motion?.animate) {
+        window.motion.animate(statusEl, { opacity: [0, 1], y: [-6, 0] }, { duration: 0.35 });
+      }
+    };
+
+    const createNoiseBuffer = (ctx, duration, color = 'white') => {
+      const sampleRate = ctx.sampleRate;
+      const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+      const buffer = ctx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < frameCount; i += 1) {
+        let value = Math.random() * 2 - 1;
+        if (color === 'crowd') {
+          value = (value + (Math.random() * 2 - 1)) / 2;
+        } else if (color === 'sneeuw') {
+          value *= Math.random();
+        }
+        data[i] = value;
+      }
+      return buffer;
+    };
+
+    const scheduleOscillator = (ctx, step, startTime) => {
+      const duration = step.duration ?? 0.4;
+      const attack = Math.min(step.attack ?? 0.02, duration);
+      const release = step.release ?? 0.18;
+      const volume = step.volume ?? 0.7;
+
+      const oscillator = ctx.createOscillator();
+      oscillator.type = step.wave || 'sine';
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + attack);
+      const sustainStart = Math.max(startTime + attack, startTime + duration - release);
+      gain.gain.setValueAtTime(volume, sustainStart);
+      gain.gain.linearRampToValueAtTime(0.0001, startTime + duration);
+
+      oscillator.frequency.setValueAtTime(step.freq || 440, startTime);
+      if (typeof step.slideTo === 'number') {
+        oscillator.frequency.linearRampToValueAtTime(step.slideTo, startTime + duration);
+      }
+      if (typeof step.detune === 'number') {
+        oscillator.detune.setValueAtTime(step.detune, startTime);
+      }
+
+      if (step.vibrato) {
+        const lfo = ctx.createOscillator();
+        const lfoGain = ctx.createGain();
+        lfo.frequency.setValueAtTime(step.vibrato.speed ?? 6, startTime);
+        lfoGain.gain.setValueAtTime(step.vibrato.depth ?? 12, startTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(oscillator.frequency);
+        lfo.start(startTime);
+        lfo.stop(startTime + duration + release);
+        watchSource(lfo);
+      }
+
+      oscillator.connect(gain);
+      gain.connect(masterGain);
+
+      watchSource(oscillator);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + release);
+
+      return duration + release;
+    };
+
+    const scheduleNoise = (ctx, step, startTime) => {
+      const duration = step.duration ?? 0.6;
+      const attack = Math.min(step.attack ?? 0.02, duration);
+      const release = step.release ?? 0.2;
+      const volume = step.volume ?? 0.45;
+
+      const source = ctx.createBufferSource();
+      source.buffer = createNoiseBuffer(ctx, duration + release, step.color);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = step.filter?.type || 'bandpass';
+      filter.frequency.setValueAtTime(step.filter?.frequency ?? 900, startTime);
+      filter.Q.setValueAtTime(step.filter?.q ?? 0.8, startTime);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + attack);
+      gain.gain.linearRampToValueAtTime(0.0001, startTime + duration);
+
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      watchSource(source);
+      source.start(startTime);
+      source.stop(startTime + duration + release);
+
+      return duration + release;
+    };
+
+    const sequences = {
+      proost: {
+        message: 'Proost! Tim schuift een tray shotjes de bar op.',
+        steps: [
+          { wave: 'triangle', freq: 392, duration: 0.18, volume: 0.72 },
+          { wave: 'square', freq: 466, duration: 0.18, volume: 0.78 },
+          { wave: 'sawtooth', freq: 523, duration: 0.32, slideTo: 659, volume: 0.82, vibrato: { depth: 14, speed: 7 } },
+          { kind: 'noise', duration: 0.6, at: 0.05, volume: 0.32, color: 'crowd', filter: { type: 'lowpass', frequency: 1400, q: 0.5 } },
+        ],
+      },
+      polonaise: {
+        message: 'De polonaise slingert de hut rond! Pak elkaars schouders!',
+        steps: [
+          { kind: 'noise', duration: 1.1, volume: 0.28, color: 'crowd', filter: { type: 'bandpass', frequency: 650, q: 0.6 } },
+          { wave: 'square', freq: 330, duration: 0.32, volume: 0.66 },
+          { wave: 'square', freq: 370, duration: 0.32, volume: 0.66 },
+          { wave: 'square', freq: 415, duration: 0.48, volume: 0.68, slideTo: 330 },
+          { wave: 'square', freq: 370, duration: 0.32, volume: 0.64 },
+        ],
+      },
+      airhorn: {
+        message: 'Dubbele Alpenclaxon! Iedereen naar het podium! 🚨',
+        steps: [
+          { wave: 'sawtooth', freq: 210, duration: 0.65, volume: 0.88, slideTo: 260 },
+          { wave: 'sawtooth', freq: 220, duration: 0.58, at: 0.28, volume: 0.82, slideTo: 310 },
+          { kind: 'noise', duration: 0.7, at: 0.18, volume: 0.3, color: 'sneeuw', filter: { type: 'highpass', frequency: 1200, q: 0.7 } },
+        ],
+      },
+      drop: {
+        message: 'DJ Tim gooit de drop! Hou je skibril vast!',
+        steps: [
+          { wave: 'sine', freq: 140, duration: 0.4, volume: 0.6 },
+          { wave: 'sine', freq: 220, duration: 0.35, volume: 0.65 },
+          { wave: 'triangle', freq: 320, duration: 0.32, slideTo: 520, volume: 0.7 },
+          { kind: 'noise', duration: 0.8, at: 0.4, volume: 0.45, color: 'sneeuw', filter: { type: 'bandpass', frequency: 1800, q: 0.9 } },
+          { wave: 'square', freq: 90, duration: 0.5, at: 0.72, volume: 0.9 },
+        ],
+      },
+      sneeuwkanon: {
+        message: 'Sneeuwkanon aan! Glitterstorm incoming! ❄️',
+        steps: [
+          { kind: 'noise', duration: 1.2, volume: 0.42, color: 'sneeuw', filter: { type: 'bandpass', frequency: 900, q: 1.2 } },
+          { wave: 'triangle', freq: 480, duration: 0.3, at: 0.2, volume: 0.6, vibrato: { depth: 18, speed: 9 } },
+          { wave: 'sawtooth', freq: 600, duration: 0.4, at: 0.5, volume: 0.7, slideTo: 720 },
+        ],
+      },
+      shotjes: {
+        message: 'Shotjesronde! Glas omhoog en zingen maar! 🥂',
+        steps: [
+          { wave: 'triangle', freq: 880, duration: 0.15, volume: 0.65 },
+          { wave: 'triangle', freq: 932, duration: 0.15, volume: 0.65 },
+          { wave: 'triangle', freq: 988, duration: 0.18, volume: 0.72 },
+          { wave: 'triangle', freq: 1046, duration: 0.22, volume: 0.76 },
+          { kind: 'noise', duration: 0.5, at: 0.05, volume: 0.26, color: 'crowd', filter: { type: 'lowpass', frequency: 1600, q: 0.6 } },
+        ],
+      },
+    };
+
+    const playSequence = (sequence) => {
+      const ctx = ensureContext();
+      if (!ctx || !masterGain) return 0;
+      const baseTime = ctx.currentTime + 0.02;
+      let timeline = 0;
+      let totalDuration = 0;
+
+      sequence.steps.forEach((step) => {
+        const offset = step.at ?? timeline;
+        const start = baseTime + offset;
+        let segment = 0;
+        if (step.kind === 'noise') {
+          segment = scheduleNoise(ctx, step, start);
+        } else {
+          segment = scheduleOscillator(ctx, step, start);
+        }
+        totalDuration = Math.max(totalDuration, offset + segment);
+        if (step.at === undefined) {
+          timeline += step.duration ?? 0;
+        } else {
+          timeline = Math.max(timeline, step.at + (step.duration ?? 0));
+        }
+      });
+
+      return totalDuration;
+    };
+
+    soundboardButtons.forEach((button) => {
+      button.addEventListener('click', async () => {
+        const soundKey = button.dataset.soundboardSound;
+        const sequence = sequences[soundKey];
+        if (!sequence) return;
+
+        await resumeContext();
+        if (!audioCtx || !masterGain) return;
+
+        stopActiveSources();
+        stopVisualizer();
+
+        button.disabled = true;
+        button.classList.add('opacity-60', 'cursor-not-allowed');
+
+        const duration = playSequence(sequence);
+        if (duration > 0) {
+          startVisualizer(duration);
+        }
+        setStatus(sequence.message || defaultStatus);
+
+        window.setTimeout(() => {
+          button.disabled = false;
+          button.classList.remove('opacity-60', 'cursor-not-allowed');
+        }, Math.max(500, duration * 1000));
+
+        if (defaultStatus && sequence.message !== defaultStatus) {
+          statusTimeout = window.setTimeout(() => {
+            if (statusEl && statusEl.textContent === sequence.message) {
+              setStatus(defaultStatus);
+            }
+            statusTimeout = null;
+          }, Math.max(1800, duration * 1000 + 300));
+        }
+      });
+    });
+
+    if (volumeControl) {
+      const updateVolume = (value) => {
+        if (!ensureContext() || !masterGain) return;
+        const normalized = Math.max(0, Math.min(1, value / 100));
+        masterGain.gain.setTargetAtTime(normalized, audioCtx.currentTime, 0.02);
+        if (volumeLabel) {
+          volumeLabel.textContent = `${Math.round(normalized * 100)}%`;
+        }
+      };
+
+      updateVolume(Number(volumeControl.value || 75));
+
+      volumeControl.addEventListener('input', (event) => {
+        const value = Number(event.target.value || 0);
+        updateVolume(value);
+      });
+    }
+  }
+
   // Leaderboard sync
   const syncLeaderboard = document.querySelector('[data-sync-leaderboard]');
   const playerScoreEl = document.querySelector('[data-player-score]');

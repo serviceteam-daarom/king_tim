@@ -162,6 +162,134 @@
         </div>
       </section>
 
+      <section id="soundboard" class="mx-auto max-w-5xl px-6">
+        <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+          <div class="pointer-events-none absolute -inset-0.5 -z-10 rounded-3xl bg-gradient-to-br from-apres-blue/20 via-apres-pink/20 to-apres-orange/20 blur-3xl"></div>
+          <div class="relative space-y-8">
+            <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div class="space-y-3">
+                <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur">
+                  <i data-lucide="volume-2" class="h-4 w-4"></i>
+                  Live fanfare uit de skihut
+                </p>
+                <h2 class="font-display text-3xl font-semibold">Tim Bodewes Après-Ski Soundboard</h2>
+                <p class="max-w-2xl text-white/70">
+                  Laat de hut ontploffen met Tim's favoriete jingles, toasten en polonaise cues. Elk knopje triggert een verse dosis feest.
+                </p>
+                <p class="text-sm text-apres-orange" data-soundboard-status>Druk op een knop en roep de après-ski magie op.</p>
+              </div>
+              <div class="flex w-full max-w-sm flex-col gap-2 text-sm text-white/70">
+                <label for="soundboard-volume" class="font-medium text-white">Volume van de hut</label>
+                <div class="flex items-center gap-4">
+                  <input
+                    id="soundboard-volume"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="75"
+                    class="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-apres-orange"
+                    data-soundboard-volume
+                  />
+                  <span class="w-14 text-right font-semibold text-white" data-soundboard-volume-label>75%</span>
+                </div>
+                <div class="flex h-16 items-end gap-2" data-soundboard-visualizer>
+                  <span class="flex-1 rounded-full bg-gradient-to-t from-apres-orange/40 via-apres-pink/60 to-apres-blue/80" data-soundboard-bar style="height: 12%; opacity: 0.4"></span>
+                  <span class="flex-1 rounded-full bg-gradient-to-t from-apres-orange/40 via-apres-blue/60 to-apres-pink/80" data-soundboard-bar style="height: 18%; opacity: 0.4"></span>
+                  <span class="flex-1 rounded-full bg-gradient-to-t from-apres-orange/40 via-apres-purple/60 to-apres-blue/80" data-soundboard-bar style="height: 22%; opacity: 0.4"></span>
+                  <span class="flex-1 rounded-full bg-gradient-to-t from-apres-orange/40 via-apres-pink/60 to-apres-purple/80" data-soundboard-bar style="height: 15%; opacity: 0.4"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <button
+                type="button"
+                class="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition hover:-translate-y-0.5 hover:border-apres-orange/60 hover:bg-slate-900/70"
+                data-soundboard-button
+                data-soundboard-sound="proost"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-apres-orange">
+                  <i data-lucide="wine" class="h-4 w-4"></i>
+                  Proost op Tim
+                </span>
+                <p class="text-base font-semibold text-white">Shotjesklinker deluxe</p>
+                <p class="text-sm text-white/60">Een snelle drieklank met bubbels en een juichende hut.</p>
+              </button>
+
+              <button
+                type="button"
+                class="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition hover:-translate-y-0.5 hover:border-apres-blue/60 hover:bg-slate-900/70"
+                data-soundboard-button
+                data-soundboard-sound="polonaise"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-apres-blue">
+                  <i data-lucide="party-popper" class="h-4 w-4"></i>
+                  Polonaise startschot
+                </span>
+                <p class="text-base font-semibold text-white">Sneeuwscooter sirene</p>
+                <p class="text-sm text-white/60">Start een vrolijke toeterparade met bonus ski-sloffen.</p>
+              </button>
+
+              <button
+                type="button"
+                class="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition hover:-translate-y-0.5 hover:border-apres-pink/60 hover:bg-slate-900/70"
+                data-soundboard-button
+                data-soundboard-sound="airhorn"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-apres-pink">
+                  <i data-lucide="megaphone" class="h-4 w-4"></i>
+                  Skihut airhorn
+                </span>
+                <p class="text-base font-semibold text-white">Dubbele Alpenclaxon</p>
+                <p class="text-sm text-white/60">Een scheurende sirene voor wanneer Tim het podium pakt.</p>
+              </button>
+
+              <button
+                type="button"
+                class="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition hover:-translate-y-0.5 hover:border-apres-purple/60 hover:bg-slate-900/70"
+                data-soundboard-button
+                data-soundboard-sound="drop"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-apres-purple">
+                  <i data-lucide="zap" class="h-4 w-4"></i>
+                  DJ Tim drop
+                </span>
+                <p class="text-base font-semibold text-white">Gondel naar de drop</p>
+                <p class="text-sm text-white/60">Een opzwepende build-up met een knallende baslanding.</p>
+              </button>
+
+              <button
+                type="button"
+                class="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition hover:-translate-y-0.5 hover:border-apres-orange/60 hover:bg-slate-900/70"
+                data-soundboard-button
+                data-soundboard-sound="sneeuwkanon"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-apres-orange">
+                  <i data-lucide="snowflake" class="h-4 w-4"></i>
+                  Sneeuwkanon remix
+                </span>
+                <p class="text-base font-semibold text-white">Glitterstorm</p>
+                <p class="text-sm text-white/60">Een mix van woesh, wind en laser-bling voor de ultieme entree.</p>
+              </button>
+
+              <button
+                type="button"
+                class="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition hover:-translate-y-0.5 hover:border-apres-blue/60 hover:bg-slate-900/70"
+                data-soundboard-button
+                data-soundboard-sound="shotjes"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-apres-blue">
+                  <i data-lucide="glass-water" class="h-4 w-4"></i>
+                  Shotjesronde
+                </span>
+                <p class="text-base font-semibold text-white">Tafelbel triomf</p>
+                <p class="text-sm text-white/60">Vrolijke glazen en een final cheers in pure Tim-stijl.</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="mx-auto max-w-5xl px-6">
         <div class="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
